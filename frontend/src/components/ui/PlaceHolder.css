@@ -1,0 +1,77 @@
+/* Skeleton Card Container */
+.skeleton-card {
+    width: 250px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Skeleton Image */
+  .skeleton-image {
+    width: 100%;
+    height: 200px;
+    background-color: #e0e0e0; /* Slightly darker for image placeholders */
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Skeleton Content */
+  .skeleton-content {
+    padding: 16px;
+  }
+  
+  /* Skeleton Text */
+  .skeleton-text {
+    height: 12px;
+    background-color: #f0f0f0; /* Keep light for text */
+    border-radius: 4px;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton-text--short {
+    width: 50%;
+  }
+  
+  .skeleton-text--medium {
+    width: 75%;
+  }
+  
+  .skeleton-text--long {
+    width: 90%;
+  }
+  
+  /* Skeleton Button */
+  .skeleton-button {
+    width: 100%;
+    height: 40px;
+    background-color: #e0e0e0; /* Darker for button placeholder */
+    border-radius: 4px;
+    margin-top: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Skeleton Animation */
+  .skeleton-image::before,
+  .skeleton-text::before,
+  .skeleton-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+  
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%); /* Smooth transition using transform */
+    }
+  }
+  

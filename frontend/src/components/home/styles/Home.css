@@ -1,0 +1,299 @@
+@import "tailwindcss";
+
+a {
+  text-decoration: none !important; /* Force removal of underline */
+  color: inherit; /* Ensure the color matches parent element */
+}
+
+/* Hero Section */
+.hero-section {
+  background-size: cover;
+  background-position: center;
+  color: white;
+  padding: 80px 20px;
+  text-align: center;
+  height: 500px; /* Fixed height */
+}
+
+.hero-section button {
+  background-color: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  margin-top: 20px; /* Added margin for spacing */
+}
+
+.hero-section button:hover {
+  background-color: #333;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 50px 10px; /* Adjust padding for smaller screens */
+    height: 350px; /* Adjust height for smaller screens */
+  }
+}
+
+/* Horizontal Sections with Cards */
+.section {
+  padding: 40px 20px;
+  background-color: #f9f9f9; /* Light background */
+  color: #333; /* Dark text color for contrast */
+  position: relative; /* For scroll buttons */
+}
+
+.section h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Featured Products Section */
+.featured-products-section {
+  padding: 40px 20px;
+  background-color: #f9f9f9;
+}
+
+.featured-products-section .featured-card-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-snap-type: x mandatory; /* Add scroll snap for better experience */
+}
+
+.featured-products-section .featured-card-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar */
+}
+
+.featured-products-section .featured-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  border: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featured-products-section .featured-scroll-btn.left {
+  left: 10px;
+}
+
+.featured-products-section .featured-scroll-btn.right {
+  right: 10px;
+}
+
+.featured-products-section .featured-card {
+  flex: 0 0 220px;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: #333;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featured-products-section .featured-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.featured-products-section .featured-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.featured-products-section .featured-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.featured-products-section .featured-card:hover h3 {
+  text-decoration: none; /* Ensure no underline on hover */
+}
+
+.featured-products-section .featured-card p {
+  font-size: 16px;
+  color: #555;
+  font-weight: 600;
+}
+
+/* New Arrivals Section */
+.new-arrivals-section {
+  padding: 40px 20px;
+  background-color: #f9f9f9; /* Light background */
+}
+
+.new-arrivals-section h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* New Arrivals Scrollable Container */
+.new-arrivals-container {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-snap-type: x mandatory; /* Scroll snap for smooth scrolling */
+}
+
+.new-arrivals-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar */
+}
+
+/* New Arrivals Scroll Buttons */
+.new-arrivals-scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  border: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-arrivals-scroll-btn.left {
+  left: 10px;
+}
+
+.new-arrivals-scroll-btn.right {
+  right: 10px;
+}
+
+/* New Arrivals Cards */
+.new-arrival-card {
+  flex: 0 0 220px;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  color: #333;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.new-arrival-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.new-arrival-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.new-arrival-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.new-arrival-card p {
+  font-size: 16px;
+  color: #555;
+  font-weight: 600;
+}
+
+/* Categories Section */
+.categories-section {
+  padding: 60px 20px;
+}
+
+.categories-section h2 {
+  margin-bottom: 30px;
+}
+
+.category-card,
+.brand-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.category-card:hover,
+.brand-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Special Deals Section */
+.special-deals {
+  background-color: #f8f8f8;
+  padding: 60px 20px;
+  border-radius: 10px;
+}
+
+.special-deals button {
+  background-color: #fff;
+  color: #000;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.special-deals button:hover {
+  background-color: #ddd;
+}
+
+/* Newsletter Signup */
+.newsletter-signup {
+  background-color: #f8f8f8;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.newsletter-signup form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.newsletter-signup input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.newsletter-signup button {
+  background-color: #000;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-left: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.newsletter-signup button:hover {
+  background-color: #333;
+}

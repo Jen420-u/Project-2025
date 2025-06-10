@@ -1,0 +1,95 @@
+.related-products-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 10px 0;
+  }
+  
+  .related-products-wrapper {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 10px;
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
+    align-items: stretch; /* Ensures all items stretch equally */
+  }
+  
+  .related-products-wrapper::-webkit-scrollbar {
+    display: none; /* Hide scrollbar in Chrome, Safari */
+  }
+  
+  .scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 30%;
+    transition: background 0.3s ease;
+    z-index: 10; /* Ensures buttons stay above other elements */
+  }
+  
+  .scroll-left {
+    left: -5px; /* Adjust position so it’s fully visible */
+  }
+  
+  .scroll-right {
+    right: -5px; /* Adjust position */
+  }
+  
+  .scroll-btn:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .scroll-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Ensure all product cards have the same height */
+  .related-products-wrapper .product-card {
+    width: 200px; /* Fixed width for product cards */
+    flex-shrink: 0; /* Prevent shrinking of product cards */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    height: 350px; /* Fixed height for consistency */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  /* Product image styling */
+  .related-products-wrapper .product-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+  
+  /* Product name and price */
+  .related-products-wrapper .product-card h4,
+  .related-products-wrapper .product-card p {
+    font-size: 0.75rem; /* Smaller font for product name */
+    text-align: center;
+    margin: 5px 0;
+  }
+  
+  /* Link styling to remove blue color and underlines */
+  .related-products-wrapper .product-card a {
+    text-decoration: none; /* Remove underline */
+    color: inherit; /* Inherit the color from parent */
+  }
+  
+  .related-products-wrapper .product-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  }
+  

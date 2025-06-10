@@ -1,0 +1,4 @@
+/core/
+/venv/
+/backend/__pycache__/
+/backend/sneakers_app/migrations/__pycache__/

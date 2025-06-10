@@ -1,0 +1,185 @@
+import PropTypes from "prop-types";
+import api, { BASE_URL } from "../../api";
+import { useState } from "react";
+import { Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
+
+const CartItem = ({
+  item,
+  onIncrease,
+  onDecrease,
+  setCartTotal,
+  setCartItems,
+  cartitems,
+  setNumberCartItems
+}) => {
+  const [quantity, setQuantity] = useState(item.quantity);
+  const [loading, setLoading] = useState(false);
+
+  const itemData = { quantity: quantity, item_id: item.id };
+  const itemID = { item_id: item.id };
+
+  // Function to handle deleting a cart item
+  function deleteCartitem() {
+    const confirmDelete = window.confirm("Are you sure you want to delete this cart item?");
+
+    if (confirmDelete) {
+      api.post("delete_cartitem/", itemID)
+        .then((res) => {
+          console.log(res.data);
+          toast.success("Cart item deleted successfully");
+
+          // Update cart items state
+          setCartItems((prevState) => {
+            const updatedCart = prevState.filter(cartitem => cartitem.id !== item.id);
+
+            // Update total price and number of items
+            setCartTotal(updatedCart.reduce((acc, curr) => acc + (curr.quantity * curr.product.price), 0)); // Assuming product has price
+            setNumberCartItems(updatedCart.reduce((acc, curr) => acc + curr.quantity, 0));
+
+            return updatedCart;
+          });
+        })
+        .catch((err) => {
+          console.log(err.message);
+        });
+    }
+  }
+
+  // Function to handle updating the cart item quantity
+  const updateCartItem = () => {
+    setLoading(true);
+    api.patch("update_quantity/", itemData)
+      .then((res) => {
+        console.log(res.data);
+        setLoading(false);
+        toast.success("Cart item updated successfully!");
+
+        // Update cart items state
+        setCartItems((prevState) => {
+          const updatedCart = prevState.map((cartitem) =>
+            cartitem.id === item.id ? { ...cartitem, ...res.data.data } : cartitem
+          );
+
+          // Update total price and item count
+          setCartTotal(updatedCart.reduce((acc, curr) => acc + (curr.quantity * curr.product.price), 0));
+          setNumberCartItems(updatedCart.reduce((acc, curr) => acc + curr.quantity, 0));
+
+          return updatedCart;
+        });
+      })
+      .catch((err) => {
+        console.error(err.message);
+        toast.error("Failed to update cart item!");
+        setLoading(false);
+      });
+  };
+
+  // Calculate discounted price
+  const { is_on_sale, discount_percent, price } = item.product;
+  const discountedPrice = price && is_on_sale
+    ? price - (price * discount_percent) / 100
+    : price || 0;  // Fallback to 0 if price is unavailable
+
+  return (
+    <div className="flex items-center justify-between p-3 border-b border-gray-300 bg-white rounded-lg shadow-md">
+      {/* Product Image */}
+      <img
+        src={`${BASE_URL}${item.product.image}`}
+        alt={item.product.name}
+        className="w-20 h-20 object-cover rounded-lg"
+      />
+
+      {/* Product Details */}
+      <div className="flex-1 ml-3">
+        <h3 className="text-md font-semibold">{item.product.name}</h3>
+        <p className="text-gray-500 text-sm">
+          {is_on_sale ? (
+            <>
+              <span className="line-through text-red-500">Rs.{price}</span> &nbsp;
+              <span className="text-green-500 font-bold">Rs.{discountedPrice.toFixed(2)}</span>
+            </>
+          ) : (
+            `Rs.${price}`
+          )}
+        </p>
+      </div>
+
+      {/* Quantity & Controls */}
+      <div className="flex items-center space-x-4">
+        {/* Quantity Controls */}
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={() => {
+              if (quantity > 1) {
+                setQuantity(prevQuantity => prevQuantity - 1);
+                onDecrease(item.id);
+              }
+            }}
+            aria-label="Decrease quantity"
+            className="w-7 h-7 flex items-center justify-center bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400"
+          >
+            -
+          </button>
+          <input
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            className="w-12 text-center border border-gray-300 rounded-md"
+          />
+          <button
+            onClick={() => {
+              setQuantity(prevQuantity => prevQuantity + 1);
+              onIncrease(item.id);
+            }}
+            aria-label="Increase quantity"
+            className="w-7 h-7 flex items-center justify-center bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400"
+          >
+            +
+          </button>
+        </div>
+
+        {/* Update Button */}
+        <button
+          onClick={updateCartItem}
+          disabled={loading}
+          className={`px-4 py-1 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600 ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? "Updating" : "Update"}
+        </button>
+
+        {/* Remove Button */}
+        <button
+          onClick={deleteCartitem}
+          className="text-red-500 hover:text-red-700 font-semibold"
+        >
+          <Trash2 size={20} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+CartItem.propTypes = {
+  item: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    quantity: PropTypes.number.isRequired,
+    product: PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      image: PropTypes.string.isRequired,
+      price: PropTypes.number.isRequired,
+      is_on_sale: PropTypes.bool.isRequired,
+      discount_percent: PropTypes.number,
+    }).isRequired,
+  }).isRequired,
+  onIncrease: PropTypes.func.isRequired,
+  onDecrease: PropTypes.func.isRequired,
+  setCartTotal: PropTypes.func.isRequired,
+  cartitems: PropTypes.array.isRequired,
+  setNumberCartItems: PropTypes.func.isRequired,
+  setCartItems: PropTypes.func.isRequired,
+};
+
+export default CartItem;
