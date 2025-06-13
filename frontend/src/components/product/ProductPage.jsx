@@ -16,7 +16,7 @@ const ProductPage = ({ setNumberCartItems }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [inCart, setInCart] = useState(false);
+  const [inCart, setInCart] = useState(false); 
   const [selectedSize, setSelectedSize] = useState(null);
   const [userReview, setUserReview] = useState("");
   const [userRating, setUserRating] = useState(5); // Default to 5 stars
@@ -181,6 +181,10 @@ const ProductPage = ({ setNumberCartItems }) => {
               `Rs.${product.price}`
             )}
           </p>
+          {/* Stock Info */}
+          <p className={`text-md font-medium ${product.stock_quantity > 0 ? "text-green-600" : "text-red-500"} mb-2`}>
+            {product.stock_quantity > 0 ? `In stock: ${product.stock_quantity}` : "Out of Stock"}
+          </p>
 
           {/* Average Rating */}
           <div className="mt-8">
@@ -197,12 +201,17 @@ const ProductPage = ({ setNumberCartItems }) => {
           </div>
 
           <button
-            onClick={add_item}
-            disabled={inCart}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition mt-4"
-          >
-            {inCart ? "Product added to Cart" : "Add to Cart"}
-          </button>
+          onClick={add_item}
+          disabled={inCart || product.stock_quantity === 0}
+          className={`mt-4 font-bold py-2 px-4 rounded-lg transition 
+            ${product.stock === 0 ? "bg-gray-400 cursor-not-allowed text-white" : "bg-blue-500 hover:bg-blue-700 text-white"}`}
+        >
+          {product.stock_quantity === 0
+            ? "Out of Stock"
+            : inCart
+            ? "Product added to Cart"
+            : "Add to Cart"}
+        </button>
         </div>
       </div>
 

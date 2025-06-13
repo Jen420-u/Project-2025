@@ -101,6 +101,11 @@ def add_item(request):
         product = get_object_or_404(Product, id=product_id)
 
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+        # Check stock before incrementing
+        if cart_item.quantity + 1 > product.stock_quantity:
+            return Response({"error": "Not enough stock available."}, status=status.HTTP_400_BAD_REQUEST)
+
         cart_item.quantity
         cart_item.save()
 
@@ -145,6 +150,13 @@ def update_quantity(request):
         quantity = int(request.data.get("quantity"))
 
         cart_item = get_object_or_404(CartItem, id=cartitem_id)
+        product = cart_item.product
+
+        # Validate requested quantity against stock
+        if quantity > product.stock_quantity:
+            return Response({"error": f"Only {product.stock_quantity} units available in stock."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         cart_item.quantity = quantity
         cart_item.save()
 
@@ -398,6 +410,22 @@ def verify_khalti_payment(request):
                 order.save()
 
                 cart = order.cart  # Assuming order has ForeignKey to Cart as `cart`
+                cart_items = cart.items.all()
+
+                # Re-check and reduce stock
+                for item in cart_items:
+                    product = item.product
+                    if item.quantity > product.stock_quantity:
+                        return Response({
+                            "error": f"Not enough stock for {product.name}. Only {product.stock_quantity} left."
+                        }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Deduct stock
+                for item in cart_items:
+                    product = item.product
+                    product.stock_quantity -= item.quantity
+                    product.save()
+
                 cart.paid = True
                 cart.save()
                 
