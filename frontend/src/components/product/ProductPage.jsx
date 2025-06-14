@@ -167,24 +167,27 @@ const ProductPage = ({ setNumberCartItems }) => {
             </div>
           </div>
 
-          {/* Price */}
-          <p className="text-2xl font-semibold !text-black-600 mb-4">
-            {product.discounted_price && product.discounted_price < product.price ? (
-              <>
-                <span className="line-through text-gray-500 mr-2">Rs.{product.price}</span>
-                <span className="text-red-500">Rs.{product.discounted_price}</span>
-                <span className="ml-2 text-green-600 bg-green-100 px-2 py-1 rounded-md text-sm font-medium">
-                  {`-${Math.round(((product.price - product.discounted_price) / product.price) * 100)}% off`}
-                </span>
-              </>
-            ) : (
-              `Rs.${product.price}`
-            )}
-          </p>
-          {/* Stock Info */}
-          <p className={`text-md font-medium ${product.stock_quantity > 0 ? "text-green-600" : "text-red-500"} mb-2`}>
-            {product.stock_quantity > 0 ? `In stock: ${product.stock_quantity}` : "Out of Stock"}
-          </p>
+          {/* Price + Stock Row */}
+          <div className="flex items-center gap-x-50 mb-4">
+            {/* Price Section */}
+            <p className="text-2xl font-semibold !text-black-600">
+              {product.discounted_price && product.discounted_price < product.price ? (
+                <>
+                  <span className="line-through text-gray-500 mr-2">Rs.{product.price}</span>
+                  <span className="text-red-500">Rs.{product.discounted_price}</span>
+                  <span className="ml-2 text-green-600 bg-green-100 px-2 py-1 rounded-md text-sm font-medium">
+                    {`-${Math.round(((product.price - product.discounted_price) / product.price) * 100)}% off`}
+                  </span>
+                </>
+              ) : (
+                `Rs.${product.price}`
+              )}
+            </p>
+            {/* Stock Info */}
+            <p className={`text-lg font-medium ${product.stock_quantity > 0 ? "text-green-600" : "text-red-500"}`}>
+              {product.stock_quantity > 0 ? `In stock: ${product.stock_quantity}` : "Out of Stock"}
+            </p>
+          </div>
 
           {/* Average Rating */}
           <div className="mt-8">

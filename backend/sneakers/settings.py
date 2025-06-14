@@ -163,7 +163,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "your_email@gmail.com"
 EMAIL_HOST_PASSWORD = "your_app_password"
 
-KHALTI_SECRET_KEY = config(KHALTI_SECRET_KEY)
+KHALTI_SECRET_KEY = config('KHALTI_SECRET_KEY')
 KHALTI_VERIFY_URL = "https://dev.khalti.com/api/v2/epayment/initiate/"
 KHALTI_LOOKUP_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"
 
