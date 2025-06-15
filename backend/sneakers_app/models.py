@@ -3,7 +3,6 @@ from django.utils.text import slugify
 from django.conf import settings
 from decimal import Decimal
 
-
 class Product(models.Model):
     CATEGORY = (
         ("Men", "Men"),

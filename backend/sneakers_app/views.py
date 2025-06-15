@@ -147,23 +147,55 @@ def get_cart(request):
 def update_quantity(request):
     try:
         cartitem_id = request.data.get("item_id")
-        quantity = int(request.data.get("quantity"))
+        quantity = request.data.get("quantity")
+
+        # Check if required data is provided
+        if cartitem_id is None or quantity is None:
+            return Response(
+                {"error": "Missing 'item_id' or 'quantity'."},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+
+        try:
+            quantity = int(quantity)
+        except ValueError:
+            return Response(
+                {"error": "'quantity' must be an integer."},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+
+        # Validate positive quantity
+        if quantity <= 0:
+            return Response(
+                {"error": "Quantity must be greater than 0."},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
 
         cart_item = get_object_or_404(CartItem, id=cartitem_id)
         product = cart_item.product
 
-        # Validate requested quantity against stock
+        # Check if requested quantity is available in stock
         if quantity > product.stock_quantity:
-            return Response({"error": f"Only {product.stock_quantity} units available in stock."},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Only {product.stock_quantity} units available in stock."},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
 
+        # Save the updated quantity
         cart_item.quantity = quantity
         cart_item.save()
 
         serializer = CartItemSerializer(cart_item)
-        return Response({"data": serializer.data, "message": "Cart Item updated successfully!"})
+        return Response({
+            "data": serializer.data,
+            "message": "Cart item updated successfully!"
+        })
+
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": f"Server error: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 # Delete cart item
 @api_view(["POST"])

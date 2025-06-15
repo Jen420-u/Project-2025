@@ -4,7 +4,7 @@ import Error from "../ui/Error";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
 
-const RegistrationPage = () => {
+const RegistrationPage = () => { 
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");

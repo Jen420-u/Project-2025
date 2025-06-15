@@ -11,75 +11,80 @@ const CartItem = ({
   setCartTotal,
   setCartItems,
   cartitems,
-  setNumberCartItems
+  setNumberCartItems,
 }) => {
   const [quantity, setQuantity] = useState(item.quantity);
   const [loading, setLoading] = useState(false);
 
-  const itemData = { quantity: quantity, item_id: item.id };
   const itemID = { item_id: item.id };
 
-  // Function to handle deleting a cart item
+  // Function to delete item from cart
   function deleteCartitem() {
     const confirmDelete = window.confirm("Are you sure you want to delete this cart item?");
-
     if (confirmDelete) {
       api.post("delete_cartitem/", itemID)
         .then((res) => {
-          console.log(res.data);
           toast.success("Cart item deleted successfully");
 
-          // Update cart items state
           setCartItems((prevState) => {
             const updatedCart = prevState.filter(cartitem => cartitem.id !== item.id);
-
-            // Update total price and number of items
-            setCartTotal(updatedCart.reduce((acc, curr) => acc + (curr.quantity * curr.product.price), 0)); // Assuming product has price
+            setCartTotal(updatedCart.reduce((acc, curr) => acc + (curr.quantity * curr.product.price), 0));
             setNumberCartItems(updatedCart.reduce((acc, curr) => acc + curr.quantity, 0));
-
             return updatedCart;
           });
         })
         .catch((err) => {
-          console.log(err.message);
+          console.error(err);
+          toast.error("Failed to delete cart item.");
         });
     }
   }
 
-  // Function to handle updating the cart item quantity
+  // Function to update quantity
   const updateCartItem = () => {
+    // Validate quantity before request
+    if (!quantity || quantity <= 0 || isNaN(quantity)) {
+      toast.error("Please enter a valid quantity greater than 0");
+      return;
+    }
+
     setLoading(true);
+    const itemData = { quantity: Number(quantity), item_id: item.id };
+
     api.patch("update_quantity/", itemData)
       .then((res) => {
-        console.log(res.data);
         setLoading(false);
         toast.success("Cart item updated successfully!");
 
-        // Update cart items state
+        // Update state
         setCartItems((prevState) => {
           const updatedCart = prevState.map((cartitem) =>
             cartitem.id === item.id ? { ...cartitem, ...res.data.data } : cartitem
           );
 
-          // Update total price and item count
-          setCartTotal(updatedCart.reduce((acc, curr) => acc + (curr.quantity * curr.product.price), 0));
-          setNumberCartItems(updatedCart.reduce((acc, curr) => acc + curr.quantity, 0));
+          setCartTotal(
+            updatedCart.reduce((acc, curr) => acc + (curr.quantity * curr.product.price), 0)
+          );
+          setNumberCartItems(
+            updatedCart.reduce((acc, curr) => acc + curr.quantity, 0)
+          );
 
           return updatedCart;
         });
       })
       .catch((err) => {
-        console.error(err.message);
-        toast.error("Failed to update cart item!");
+        console.error(err);
+        const errorMsg = err.response?.data?.error || "Failed to update cart item!";
+        toast.error(errorMsg);
         setLoading(false);
       });
   };
 
-  // Calculate discounted price
+  // Product price calculation
   const { is_on_sale, discount_percent, price } = item.product;
   const discountedPrice = price && is_on_sale
     ? price - (price * discount_percent) / 100
-    : price || 0;  // Fallback to 0 if price is unavailable
+    : price || 0;
 
   return (
     <div className="flex items-center justify-between p-3 border-b border-gray-300 bg-white rounded-lg shadow-md">
@@ -96,7 +101,7 @@ const CartItem = ({
         <p className="text-gray-500 text-sm">
           {is_on_sale ? (
             <>
-              <span className="line-through text-red-500">Rs.{price}</span> &nbsp;
+              <span className="line-through text-red-500">Rs.{price}</span>&nbsp;
               <span className="text-green-500 font-bold">Rs.{discountedPrice.toFixed(2)}</span>
             </>
           ) : (
@@ -105,35 +110,38 @@ const CartItem = ({
         </p>
       </div>
 
-      {/* Quantity & Controls */}
+      {/* Quantity Controls */}
       <div className="flex items-center space-x-4">
-        {/* Quantity Controls */}
         <div className="flex items-center space-x-1">
           <button
             onClick={() => {
               if (quantity > 1) {
-                setQuantity(prevQuantity => prevQuantity - 1);
+                setQuantity(prev => prev - 1);
                 onDecrease(item.id);
               }
             }}
-            aria-label="Decrease quantity"
             className="w-7 h-7 flex items-center justify-center bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400"
+            aria-label="Decrease quantity"
           >
             -
           </button>
           <input
             type="number"
+            min="1"
             value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (value >= 1) setQuantity(value);
+            }}
             className="w-12 text-center border border-gray-300 rounded-md"
           />
           <button
             onClick={() => {
-              setQuantity(prevQuantity => prevQuantity + 1);
+              setQuantity(prev => prev + 1);
               onIncrease(item.id);
             }}
-            aria-label="Increase quantity"
             className="w-7 h-7 flex items-center justify-center bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400"
+            aria-label="Increase quantity"
           >
             +
           </button>
@@ -147,10 +155,10 @@ const CartItem = ({
             loading ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          {loading ? "Updating" : "Update"}
+          {loading ? "Updating..." : "Update"}
         </button>
 
-        {/* Remove Button */}
+        {/* Delete Button */}
         <button
           onClick={deleteCartitem}
           className="text-red-500 hover:text-red-700 font-semibold"
