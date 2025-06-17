@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Product, Cart, CartItem, Review, Order
 from django.conf import settings
 import requests
+from django.db import transaction
 from decimal import Decimal
 import uuid
 from .serializers import (
@@ -97,20 +98,25 @@ def add_item(request):
         cart_code = request.data.get("cart_code")
         product_id = request.data.get("product_id")
 
-        cart, created = Cart.objects.get_or_create(cart_code=cart_code)
+        if not cart_code or not product_id:
+            return Response({"error": "Missing cart_code or product_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        cart, _ = Cart.objects.get_or_create(cart_code=cart_code)
         product = get_object_or_404(Product, id=product_id)
 
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
 
         # Check stock before incrementing
         if cart_item.quantity + 1 > product.stock_quantity:
-            return Response({"error": "Not enough stock available."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Not enough stock available for {product.name}."}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Increment quantity
         cart_item.quantity
         cart_item.save()
 
         serializer = CartItemSerializer(cart_item)
         return Response({"data": serializer.data, "message": "CartItem added successfully"}, status=status.HTTP_201_CREATED)
+
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -303,6 +309,30 @@ def get_reviews(request, slug):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+def validate_cart(request):
+    """
+    Validates the cart before proceeding to checkout (e.g., ensures stock is available).
+    """
+    try:
+        cart = Cart.objects.get(user=request.user, paid=False)
+        items = cart.items.all()
+
+        for item in items:
+            product = item.product
+            if item.quantity > product.stock_quantity:
+                return Response({
+                    "error": f"{product.name} only has {product.stock_quantity} in stock. Please update your cart."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"valid": True}, status=status.HTTP_200_OK)
+
+    except Cart.DoesNotExist:
+        return Response({"error": "Cart exceeds the stock limit."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def initiate_payment(request):
     user = request.user
 
@@ -409,74 +439,85 @@ def verify_khalti_payment(request):
     Verifies the Khalti payment using the provided pidx (Payment ID).
     """
     try:
-        pidx = request.data.get("pidx")  # Get pidx from frontend
-        if not pidx:
-            return Response({'error': 'Payment ID (pidx) is required'}, status=status.HTTP_400_BAD_REQUEST)
+        pidx = request.data.get("pidx")
+        order_id = request.data.get("order_id")
 
-        order = Order.objects.filter(ord_id=request.data.get("order_id")).first()
+        if not pidx or not order_id:
+            return Response(
+                {'error': 'Payment ID (pidx) and order_id are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        order = Order.objects.filter(ord_id=order_id).first()
         if not order:
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Prepare request for Khalti verification
-        verify_payload = {
-            "pidx": pidx
-        }
-
+        # Send verification request to Khalti
+        verify_payload = {"pidx": pidx}
         headers = {
             "Authorization": f"Key {settings.KHALTI_SECRET_KEY}",
             "Content-type": "application/json",
         }
+        response = requests.post(settings.KHALTI_LOOKUP_URL, json=verify_payload, headers=headers)
 
-        # Send request to Khalti API to verify payment
-        response = requests.post(
-            settings.KHALTI_LOOKUP_URL,  # Use live URL for production
-            json=verify_payload,
-            headers=headers
-        )
+        if response.status_code != 200:
+            return Response({
+                "error": "Error from Khalti API",
+                "details": response.text
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        if response.status_code == 200:
-            khalti_data = response.json()
-            if khalti_data.get("status") == "Completed":
-                # Update order status if payment is successful
-                order.status = "completed"
-                order.save()
+        khalti_data = response.json()
+        if khalti_data.get("status") != "Completed":
+            return Response({
+                "error": "Payment verification failed",
+                "details": khalti_data
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-                cart = order.cart  # Assuming order has ForeignKey to Cart as `cart`
-                cart_items = cart.items.all()
+        #  Safe update using a transaction
+        with transaction.atomic():
+            cart = order.cart
+            cart_items = cart.items.select_related("product").all()
 
-                # Re-check and reduce stock
-                for item in cart_items:
-                    product = item.product
-                    if item.quantity > product.stock_quantity:
-                        return Response({
-                            "error": f"Not enough stock for {product.name}. Only {product.stock_quantity} left."
-                        }, status=status.HTTP_400_BAD_REQUEST)
+            stock_issue = False
+            stock_issues = []
 
-                # Deduct stock
+            # Step 1: Check stock, but do not fail immediately
+            for item in cart_items:
+                if item.quantity > item.product.stock_quantity:
+                    stock_issue = True
+                    stock_issues.append(f"{item.product.name} (only {item.product.stock_quantity} left)")
+
+            # Step 2: Deduct stock if no issue
+            if not stock_issue:
                 for item in cart_items:
                     product = item.product
                     product.stock_quantity -= item.quantity
                     product.save()
 
                 cart.paid = True
+                cart.locked = False
                 cart.save()
-                
-                return Response({
-                    "verified": True,
-                    "message": "Payment verified successfully",
-                    "order_id": order.ord_id,
-                    "transaction_info": khalti_data
-                }, status=status.HTTP_200_OK)
+
+                order.status = "completed"
+                order.save()
             else:
-                return Response({
-                    "error": "Payment verification failed",
-                    "details": khalti_data
-                }, status=status.HTTP_400_BAD_REQUEST)
+                # Mark order with stock issue, but still mark paid to avoid frontend failure
+                cart.paid = True
+                cart.locked = False
+                cart.save()
+
+                order.status = "pending_stock_issue"  # or "completed_with_stock_issue"
+                order.stock_issue_details = ", ".join(stock_issues)  # Add a field to store details
+                order.save()
 
         return Response({
-            "error": "Error from Khalti API",
-            "details": response.text
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            "verified": True,
+            "message": "Payment verified successfully",
+            "order_id": order.ord_id,
+            "stock_issue": stock_issue,
+            "stock_issue_details": stock_issues if stock_issue else None,
+            "transaction_info": khalti_data
+        }, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

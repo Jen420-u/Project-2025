@@ -70,6 +70,7 @@ class Cart(models.Model):
     paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     modified_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    locked = models.BooleanField(default=False)
 
     def __str__(self):
         return self.cart_code
