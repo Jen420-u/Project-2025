@@ -63,7 +63,6 @@ class Review(models.Model):
     def __str__(self):
         return f"Review by {self.user.username} for {self.product.name}"
 
-
 class Cart(models.Model):
     cart_code = models.CharField(max_length=11, unique=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True)

@@ -90,7 +90,6 @@ def get_brand(request, brand):
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
-
 # Add item to the cart
 @api_view(["POST"])
 def add_item(request):
