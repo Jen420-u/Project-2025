@@ -15,6 +15,7 @@ from django.conf import settings
 import requests
 from django.db import transaction
 from decimal import Decimal
+from django.http import JsonResponse
 import uuid
 from .serializers import (
     ProductSerializer, CartItemSerializer, SimpleCartSerializer, CartSerializer, UserSerializer,
